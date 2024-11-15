@@ -13,6 +13,7 @@ public class Day01 : BaseDay
 
     public override ValueTask<string> Solve_2() => new($"{SolveCommon(_input.Length / 2)}");
 
+    #region Common solution
     private int SolveCommon(int offset)
     {
         var input = _input + _input[..offset];
@@ -20,7 +21,9 @@ public class Day01 : BaseDay
             .Zip(input.Skip(offset), (current, next) => current == next ? current - '0' : 0)
             .Sum();
     }
+    #endregion
 
+    #region Original solutions
     private int Solve1()
     {
         var input = _input + _input[0];
@@ -37,4 +40,5 @@ public class Day01 : BaseDay
             .Zip(input.Skip(halfLen), (current, next) => current == next ? current - '0' : 0)
             .Sum();
     }
+    #endregion
 }
