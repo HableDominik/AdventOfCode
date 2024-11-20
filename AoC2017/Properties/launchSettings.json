@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "AoC2017": {
-      "commandName": "Project",
-      "commandLineArgs": "all"
-    }
-  }
-}
