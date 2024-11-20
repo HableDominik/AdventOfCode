@@ -15,7 +15,7 @@ public class Day13 : BaseDay
 
     private int Solve1()
         => ParseLayers()
-            .Where(l => IsCaught(l.Depth, l.Range, 0))
+            .Where(l => IsCaught(l.Depth, l.Range))
             .Sum(l => l.Depth * l.Range);
 
     private int Solve2()
