@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AoC2017", "AoC2017\AoC2017.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AoC2024", "AoC2024\AoC2024.csproj", "{C589BF59-F4C6-4629-8CC5-5285EC399613}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AoC2019", "AoC2019\AoC2019.csproj", "{27A9270E-3052-45CB-917C-FAEB5456029F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AoC2019", "AoC2019\AoC2019.csproj", "{27A9270E-3052-45CB-917C-FAEB5456029F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AAFC64E4-52D4-48C9-9F1B-8C7664B6E8DC}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
