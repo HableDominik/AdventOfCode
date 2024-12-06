@@ -11,255 +11,99 @@ public class Day05 : BaseDay
         _input = File.ReadAllText(InputFilePath).Split(',').Select(int.Parse).ToArray();
     }
 
-    public override ValueTask<string> Solve_1() => new($"{Solve1()}");
+    public override ValueTask<string> Solve_1() => new($"{Solve(1)}");
 
-    public override ValueTask<string> Solve_2() => new($"{Solve2()}");
+    public override ValueTask<string> Solve_2() => new($"{Solve(5)}");
 
-    private int Solve1()
+    private int Solve(int input)
     {
         var code = (int[])_input.Clone();
-        const int input = 1;
-        var pntr = 0;
+        var pointer = 0;
+        var result = 0;
 
-        while (code[pntr] != 99)
+        var operations = new Dictionary<int, Action>
         {
-            switch(code[pntr])
+            [1] = () => pointer += BinaryOperation(code, pointer, (a,b) => a + b),
+            [2] = () => pointer += BinaryOperation(code, pointer, (a, b) => a * b),
+            [3] = () => pointer += InputOperation(code, pointer, input),
+            [4] = () => pointer += OutputOperation(code, pointer, ref result),
+            [5] = () => pointer = JumpOperation(code, pointer, true),
+            [6] = () => pointer = JumpOperation(code, pointer, false),
+            [7] = () => pointer += BinaryOperation(code, pointer, (a, b) => a < b ? 1 : 0),
+            [8] = () => pointer += BinaryOperation(code, pointer, (a, b) => a == b ? 1 : 0),
+        };
+
+        while (code[pointer] != 99)
+        {
+            var op = code[pointer] % 10;
+
+            if (operations.TryGetValue(op, out var operation))
             {
-                case 1: pntr +=
-                        Add(code, code[pntr + 1], false, code[pntr + 2], false, code[pntr + 3]); 
-                    break;
-                case 2:
-                    pntr +=
-                        Multiply(code, code[pntr + 1], false, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 3: pntr += Input(code, code[pntr + 1], input);
-                    break; 
-                case 4: var (jump, result) = Output(code, code[pntr + 1], false);
-                    if (result != -1) return result;
-                    pntr += jump;
-                    break;
-                case 104: (jump, result) = Output(code, code[pntr + 1], true);
-                    if (result != -1) return result;
-                    pntr += jump;
-                    break;
-                case 101: pntr +=
-                        Add(code, code[pntr + 1], true, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 102: pntr +=
-                        Multiply(code, code[pntr + 1], true, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 1001: pntr +=
-                        Add(code, code[pntr + 1], false, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1002: pntr +=
-                        Multiply(code, code[pntr + 1], false, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1101: pntr +=
-                        Add(code, code[pntr + 1], true, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1102: pntr +=
-                        Multiply(code, code[pntr + 1], true, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                default: Console.WriteLine("Missing Instruction: " + code[pntr]); return -1;
+                operation();
+            }
+            else
+            {
+                Console.WriteLine("Unknown instruction: " + code[pointer]);
+                return -1;
             }
         }
 
-        return -1;
+        return result;
     }
 
-    private static int Input(int[] code, int pointer, int value)
+    private static (int value1, int value2, int dest) ParseParameters(int[] code, int pointer, bool hasDest)
     {
-        code[pointer] = value;
+        var op = code[pointer];
+
+        var mode1 = (op % 1000) / 100 == 1;
+        var mode2 = (op % 10000) / 1000 == 1;
+
+        var param1 = code[pointer + 1];
+        var param2 = code[pointer + 2];
+
+        var value1 = mode1 ? param1 : code[param1];
+        var value2 = mode2 ? param2 : code[param2];
+
+        var dest = hasDest ? code[pointer + 3] : -1;
+
+        return (value1, value2, dest);
+    }
+
+    private static int BinaryOperation(int[] code, int pointer, Func<int, int, int> operation)
+    {
+        var (value1, value2, dest) = ParseParameters(code, pointer, hasDest: true);
+
+        code[dest] = operation(value1, value2);
+
+        return 4;
+    }
+
+    private static int JumpOperation(int[] code, int pointer, bool condition)
+    {
+        var (value1, value2, _) = ParseParameters(code, pointer, hasDest: false);
+
+        return (value1 > 0) == condition ? value2 : pointer + 3;
+    }
+
+    private static int InputOperation(int[] code, int pointer, int value)
+    {
+        var dest = code[pointer + 1];
+
+        code[dest] = value;
+
         return 2;
     }
 
-    private static (int jump, int result) Output(int[] code, int pointer, bool pointerImmediateMode)
+    private static int OutputOperation(int[] code, int pointer, ref int result)
     {
-        var value = pointerImmediateMode ? pointer : code[pointer];
-        
-        if (value != 0)
-        {
-            return (0, value);
-        }
+        var op = code[pointer];
 
-        return (2,-1);
-    }
+        var mode = op / 100 == 1;
 
-    private static int Add(int[] code, 
-        int param1Pointer, bool param1ImmediateMode, 
-        int param2Pointer, bool param2ImmediateMode, 
-        int destinationPointer)
-    {
-        var value1 = param1ImmediateMode ? param1Pointer : code[param1Pointer];
-        var value2 = param2ImmediateMode ? param2Pointer : code[param2Pointer];
-        code[destinationPointer] = value1 + value2;
+        var dest = mode ? pointer + 1 : code[pointer + 1];
 
-        return 4;
-    }
+        result = code[dest];
 
-    private static int Multiply(int[] code,
-        int param1Pointer, bool param1ImmediateMode,
-        int param2Pointer, bool param2ImmediateMode,
-        int destinationPointer)
-    {
-        var value1 = param1ImmediateMode ? param1Pointer : code[param1Pointer];
-        var value2 = param2ImmediateMode ? param2Pointer : code[param2Pointer];
-        code[destinationPointer] = value1 * value2;
-
-        return 4;
-    }
-
-    private int Solve2()
-    {
-        var code = (int[])_input.Clone();
-        const int input = 5;
-        var pntr = 0;
-
-        while (code[pntr] != 99)
-        {
-            switch (code[pntr])
-            {
-                case 3:
-                    pntr += Input(code, code[pntr + 1], input);
-                    break;
-                case 4:
-                    var (jump, result) = Output(code, code[pntr + 1], false);
-                    if (result != -1) return result;
-                    pntr += jump;
-                    break;
-                case 104:
-                    (jump, result) = Output(code, code[pntr + 1], true);
-                    if (result != -1) return result;
-                    pntr += jump;
-                    break;
-                case 1:
-                    pntr +=        Add(code, code[pntr + 1], false, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 2:
-                    pntr +=   Multiply(code, code[pntr + 1], false, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 5:
-                    pntr =  JumpIfTrue(code, code[pntr + 1], false, code[pntr + 2], false, pntr);
-                    break;
-                case 6:
-                    pntr = JumpIfFalse(code, code[pntr + 1], false, code[pntr + 2], false, pntr);
-                    break;
-                case 7:
-                    pntr +=    LessThan(code, code[pntr + 1], false, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 8:
-                    pntr +=      Equals(code, code[pntr + 1], false, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 101:
-                    pntr +=        Add(code, code[pntr + 1], true, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 102:
-                    pntr +=   Multiply(code, code[pntr + 1], true, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 105:
-                    pntr =  JumpIfTrue(code, code[pntr + 1], true, code[pntr + 2], false, pntr);
-                    break;
-                case 106:
-                    pntr = JumpIfFalse(code, code[pntr + 1], true, code[pntr + 2], false, pntr);
-                    break;
-                case 107:
-                    pntr +=    LessThan(code, code[pntr + 1], true, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 108:
-                    pntr +=      Equals(code, code[pntr + 1], true, code[pntr + 2], false, code[pntr + 3]);
-                    break;
-                case 1001:
-                    pntr +=        Add(code, code[pntr + 1], false, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1002:
-                    pntr +=   Multiply(code, code[pntr + 1], false, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1005:
-                    pntr =  JumpIfTrue(code, code[pntr + 1], false, code[pntr + 2], true, pntr);
-                    break;
-                case 1006:
-                    pntr = JumpIfFalse(code, code[pntr + 1], false, code[pntr + 2], true, pntr);
-                    break;
-                case 1007:
-                    pntr +=    LessThan(code, code[pntr + 1], false, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1008:
-                    pntr +=      Equals(code, code[pntr + 1], false, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1101:
-                    pntr +=        Add(code, code[pntr + 1], true, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1102:
-                    pntr +=   Multiply(code, code[pntr + 1], true, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1105:
-                    pntr =  JumpIfTrue(code, code[pntr + 1], true, code[pntr + 2], true, pntr);
-                    break;
-                case 1106:
-                    pntr = JumpIfFalse(code, code[pntr + 1], true, code[pntr + 2], true, pntr);
-                    break;
-                case 1107:
-                    pntr +=    LessThan(code, code[pntr + 1], true, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                case 1108:
-                    pntr +=      Equals(code, code[pntr + 1], true, code[pntr + 2], true, code[pntr + 3]);
-                    break;
-                default: Console.WriteLine("Missing Instruction: " + code[pntr]); return -1;
-            }
-        }
-
-        return 0;
-    }
-
-    private static int JumpIfTrue(int[] code,
-        int param1Pointer, bool param1ImmediateMode,
-        int param2Pointer, bool param2ImmediateMode,
-        int pointer)
-    {
-        var value1 = param1ImmediateMode ? param1Pointer : code[param1Pointer];
-        var value2 = param2ImmediateMode ? param2Pointer : code[param2Pointer];
-
-        if (value1 != 0) return value2;
-
-        return pointer + 3;
-    }
-
-    private static int JumpIfFalse(int[] code,
-        int param1Pointer, bool param1ImmediateMode,
-        int param2Pointer, bool param2ImmediateMode,
-        int pointer)
-    {
-        var value1 = param1ImmediateMode ? param1Pointer : code[param1Pointer];
-        var value2 = param2ImmediateMode ? param2Pointer : code[param2Pointer];
-
-        if (value1 == 0) return value2;
-
-        return pointer + 3;
-    }
-
-    private static int LessThan(int[] code,
-        int param1Pointer, bool param1ImmediateMode,
-        int param2Pointer, bool param2ImmediateMode,
-        int destinationPointer)
-    {
-        var value1 = param1ImmediateMode ? param1Pointer : code[param1Pointer];
-        var value2 = param2ImmediateMode ? param2Pointer : code[param2Pointer];
-
-        code[destinationPointer] = value1 < value2 ? 1 : 0;
-
-        return 4;
-    }
-
-    private static int Equals(int[] code,
-        int param1Pointer, bool param1ImmediateMode,
-        int param2Pointer, bool param2ImmediateMode,
-        int destinationPointer)
-    {
-        var value1 = param1ImmediateMode ? param1Pointer : code[param1Pointer];
-        var value2 = param2ImmediateMode ? param2Pointer : code[param2Pointer];
-
-        code[destinationPointer] = value1 == value2 ? 1 : 0;
-
-        return 4;
+        return 2;
     }
 }
