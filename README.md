@@ -6,7 +6,7 @@
 | 2    |  X  |  X  |  X  |  X  |  X  |  X  |     |  X  |     |  X  |
 | 3    |  X  |  X  |  X  |  X  |  X  |  X  |     |  X  |     |  X  |
 | 4    |  X  |  X  |  X  |  X  |  X  |  X  |     |  X  |     |  X  |
-| 5    |  X  |  X  |  X  |  X  |  X  |     |     |  X  |     |  X  |
+| 5    |  X  |  X  |  X  |  X  |  X  |  X  |     |  X  |     |  X  |
 | 6    |  X  |  X  |  X  |  X  |  X  |     |     |  X  |     |  X  |
 | 7    |     |  X  |  X  |  X  |     |     |     |  X  |     |  X  |
 | 8    |     |  X  |  X  |  X  |     |     |     |  X  |     |  X  |
