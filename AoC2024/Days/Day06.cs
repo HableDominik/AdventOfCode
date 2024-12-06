@@ -62,6 +62,7 @@ public class Day06 : BaseDay
     /// <summary>
     /// Brute forced.
     /// Idea: Don't start from beginning, but from checkpoints (last original obstructions?).
+    /// Improvement result: 32s -> 8s
     /// </summary>
     /// <returns>Correct result.</returns>
     private int Solve2()
@@ -69,12 +70,16 @@ public class Day06 : BaseDay
         var possibleNewObstructions = Solve1();
         var visited = new List<(Point pos, Point dir)>();
         var result = 0;
+
+        var checkpointGuardPosition = _guardOrigin;
+        var checkpointGuardDirection = _guardOriginDir;
         
         foreach(var newObstrcution in possibleNewObstructions.Skip(1))
         {
             visited.Clear();
-            var guard = _guardOrigin;
-            var dir = _guardOriginDir;
+            var guard = checkpointGuardPosition;
+            var dir = checkpointGuardDirection;
+            var disableCheckpoint = false;
             var currentObstructions = _originalObstructions.ToList();
             currentObstructions.Add(newObstrcution);
 
@@ -83,16 +88,26 @@ public class Day06 : BaseDay
                 visited.Add((guard, dir));
                 var next = new Point(guard.X + dir.X, guard.Y + dir.Y);
 
+                if (currentObstructions.Contains(next))
+                {
+                    dir = new Point(-dir.Y, dir.X);
+
+                    if (disableCheckpoint || next == newObstrcution)
+                    {
+                        disableCheckpoint = true;
+                        continue;
+                    }
+
+                    checkpointGuardPosition = guard;
+                    checkpointGuardDirection = dir;
+
+                    continue;
+                }
+
                 if (visited.Contains((next, dir)))
                 {
                     result++;
                     break;
-                }
-
-                if (currentObstructions.Contains(next))
-                {
-                    dir = new Point(-dir.Y, dir.X);
-                    continue;
                 }
 
                 guard = next;
