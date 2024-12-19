@@ -37,7 +37,7 @@ public class Day19 : BaseDay
 
         if (_badPatterns.Contains(pattern)) return 0;
 
-        if (pattern.Length == 0) return 1;
+        if (pattern.Length is 0) return 1;
 
         long patternCount = 0;
 
@@ -48,7 +48,7 @@ public class Day19 : BaseDay
             patternCount += CheckPattern(pattern[i..]);
         }
 
-        if (patternCount == 0)
+        if (patternCount is 0)
         {
             _badPatterns.Add(pattern);
         }
