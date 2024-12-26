@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+﻿using Spectre.Console;
 
 namespace AoC2024.Days;
 
@@ -15,7 +15,9 @@ public class Day17 : BaseDay
 
     public override ValueTask<string> Solve_2() => new($"{Solve2()}");
 
-    private string Solve1(long regA)
+    private string Solve1(long regA) => string.Join(',', Solve(regA));
+
+    private List<int> Solve(long regA)
     {
         long[] register = [regA, 0, 0];
         int pointer = 0;
@@ -55,10 +57,33 @@ public class Day17 : BaseDay
             pointer += 2;
         }
 
-        return string.Join(',', result);
+        return result;
     }
 
-    private int Solve2() => 0;
+    private long Solve2() => Enumerable.Range(0,8).Select(n => RecursivelySolve(1, n)).FirstOrDefault(x => x > 0);
+
+    private long RecursivelySolve(int depth, long previousValue)
+    {
+        var sequence = _program[..depth];
+
+        for (int currentDigit = 0; currentDigit < 8; currentDigit++)
+        {
+            long currentValue = previousValue * 8 + currentDigit;
+
+            var solve = Solve(currentValue);
+            solve.Reverse();
+
+            if (!solve.SequenceEqual(sequence)) continue;
+
+            Console.WriteLine($"{new string(' ', depth*3)}{currentDigit} : {currentValue}");
+
+            var result = RecursivelySolve(depth + 1, currentValue);
+
+            if (result > 0) return result;
+        }
+
+        return -1;
+    }
 
     private static int JumpIfANotZero(long registerA, long literalOperand, int pointer)
         => registerA == 0 ? pointer : (int)literalOperand - 2;
@@ -67,9 +92,8 @@ public class Day17 : BaseDay
 
     static long DivideRegister(long registerA, long comboOperand)
     {
-        var numerator = registerA;
-        var denominator = Math.Pow(2, comboOperand);
-        return (long)Math.Truncate(numerator / denominator);
+        var denominator = 1L << (int)comboOperand;
+        return registerA / denominator;
     }
 
     static long GetValueFrom(long[] register, long operand)
