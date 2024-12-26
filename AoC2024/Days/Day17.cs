@@ -17,6 +17,8 @@ public class Day17 : BaseDay
 
     private string Solve1(long regA) => string.Join(',', Solve(regA));
 
+    private long Solve2() => Enumerable.Range(0, 8).Select(n => RecursivelySolve(1, n)).First(x => x > 0);
+
     private List<int> Solve(long regA)
     {
         long[] register = [regA, 0, 0];
@@ -60,22 +62,19 @@ public class Day17 : BaseDay
         return result;
     }
 
-    private long Solve2() => Enumerable.Range(0,8).Select(n => RecursivelySolve(1, n)).FirstOrDefault(x => x > 0);
-
     private long RecursivelySolve(int depth, long previousValue)
     {
-        var sequence = _program[..depth];
+        if (depth > _program.Length) return previousValue;
+
+        var sequence = _program[^depth..];
 
         for (int currentDigit = 0; currentDigit < 8; currentDigit++)
         {
             long currentValue = previousValue * 8 + currentDigit;
 
-            var solve = Solve(currentValue);
-            solve.Reverse();
+            var solvedSequence = Solve(currentValue);
 
-            if (!solve.SequenceEqual(sequence)) continue;
-
-            Console.WriteLine($"{new string(' ', depth*3)}{currentDigit} : {currentValue}");
+            if (!solvedSequence.SequenceEqual(sequence)) continue;
 
             var result = RecursivelySolve(depth + 1, currentValue);
 
@@ -88,13 +87,11 @@ public class Day17 : BaseDay
     private static int JumpIfANotZero(long registerA, long literalOperand, int pointer)
         => registerA == 0 ? pointer : (int)literalOperand - 2;
 
-    static int Take3Bit(long comboOperand) => (int)(comboOperand % 8);
+    static int Take3Bit(long comboOperand) 
+        => (int)(comboOperand % 8);
 
-    static long DivideRegister(long registerA, long comboOperand)
-    {
-        var denominator = 1L << (int)comboOperand;
-        return registerA / denominator;
-    }
+    static long DivideRegister(long registerA, long comboOperand) 
+        => registerA / (1L << (int)comboOperand);
 
     static long GetValueFrom(long[] register, long operand)
         => operand switch
