@@ -6,14 +6,25 @@ namespace AoC2024.Days;
 public class Day16 : BaseDay
 {
     private readonly char[][] _maze;
-    private readonly (int X, int Y) _start;
-    private readonly (int X, int Y) _end;
+    private readonly int[,,] _costMap;
+    private readonly int _rows, _cols;
+    private readonly (int X, int Y) _start, _end;
     private readonly (int dx, int dy)[] _directions;
     private readonly Comparer<(int x, int y, int cost, int dir)> _comparer;
 
     public Day16()
     {
         _maze = File.ReadAllLines(InputFilePath).Select(line => line.ToArray()).ToArray();
+
+        _rows = _maze.Length;
+        _cols = _maze[0].Length;
+
+        _costMap = new int[_cols, _rows, 4];
+
+        for (int y = 0; y < _rows; y++)
+            for (int x = 0; x < _cols; x++)
+                for (int dir = 0; dir < 4; dir++)
+                    _costMap[x, y, dir] = int.MaxValue;
 
         _start = GetSingleCharPosition(_maze, 'S');
         _end = GetSingleCharPosition(_maze, 'E');
@@ -33,23 +44,23 @@ public class Day16 : BaseDay
 
     private int Solve1() => FindCheapestPath(_maze, _start, _end);
 
-    private int Solve2() => -1;
+    private int Solve2()
+    {
+        var visited = new HashSet<(int X, int Y)>();
+
+        Backtrack(_end, GetMinCosts(_end.X, _end.Y).Min() + 1, visited);
+
+        return visited.Count;
+    }
 
     private int FindCheapestPath(char[][] maze, (int X, int Y) start, (int X, int Y) end)
     {
-        int rows = _maze.Length;
-        int cols = _maze[0].Length;
+        var prioQueue = new SortedSet<(int x, int y, int cost, int dir)>(_comparer)
+        {
+            (start.X, start.Y, 0, 1)
+        };
 
-        var prioQueue = new SortedSet<(int x, int y, int cost, int dir)>(_comparer);
-
-        var costMap = new int[cols, rows, 4];
-        for (int y = 0; y < rows; y++)
-            for (int x = 0; x < cols; x++)
-                for (int dir = 0; dir < 4; dir++)
-                    costMap[x, y, dir] = int.MaxValue;
-
-        prioQueue.Add((start.X, start.Y, 0, 1));
-        costMap[start.X, start.Y, 1] = 0;
+        _costMap[start.X, start.Y, 1] = 0;
 
         while(prioQueue.Count > 0)
         {
@@ -58,7 +69,7 @@ public class Day16 : BaseDay
 
             if ((x, y) == end) return currentCost;
 
-            if (currentCost > costMap[x, y, dir]) continue;
+            if (currentCost > _costMap[x, y, dir]) continue;
 
             for (int dirOffset = -1; dirOffset <= 1; dirOffset++)
             {
@@ -71,15 +82,42 @@ public class Day16 : BaseDay
                 
                 int newCost = currentCost + 1 + turnCost;
 
-                if (newCost >= costMap[newX, newY, newDir]) continue;
+                if (newCost >= _costMap[newX, newY, newDir]) continue;
 
-                costMap[newX, newY, newDir] = newCost;
+                _costMap[newX, newY, newDir] = newCost;
                 prioQueue.Add((newX, newY, newCost, newDir));
             }
         }
 
         return -1;
     }
+
+    private void Backtrack((int X, int Y) current, int prevCost, HashSet<(int X, int Y)> visited)
+    {
+        if (visited.Contains(current)) return;
+
+        var currentCosts = GetMinCosts(current.X, current.Y);
+        if (currentCosts.Length == 0) return;
+
+        foreach (var currentCost in currentCosts)
+        {
+            var cost = prevCost - currentCost;
+            if (cost is not 1 && cost is not 1001) continue;
+
+            visited.Add(current);
+
+            foreach (var (dx, dy) in _directions)
+            {
+                Backtrack((current.X + dx, current.Y + dy), currentCost, visited);
+            }
+        }
+    }
+
+    private int[] GetMinCosts(int x, int y)
+        => Enumerable.Range(0, 4)
+            .Select(d => _costMap[x, y, d])
+            .Where(cost => cost is not int.MaxValue)
+            .ToArray();
 
     private static (int, int) GetSingleCharPosition(char[][] map, char term)
     => map
