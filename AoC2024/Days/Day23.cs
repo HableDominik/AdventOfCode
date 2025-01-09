@@ -22,16 +22,47 @@ public class Day23 : BaseDay
     private int Solve1()
         => FindTriangles(_graph)
             .Where(static triangle =>
-                triangle.Item1.StartsWith("t") ||
-                triangle.Item2.StartsWith("t") ||
-                triangle.Item3.StartsWith("t"))
+                triangle.Item1.StartsWith('t') ||
+                triangle.Item2.StartsWith('t') ||
+                triangle.Item3.StartsWith('t'))
             .Count();
 
-    private string Solve2() => string.Empty;
+    private string Solve2()
+        => string.Join(',', BronKerbosch([], new HashSet<string>(_graph.Keys), []).Order());
+
+    private List<string> BronKerbosch(
+        HashSet<string> R, // Vertices already in the current clique.
+        HashSet<string> P, // Vertices that can still join the current clique.
+        HashSet<string> X) // Vertices that can't join the current clique.
+    {
+        if (P.Count is 0 && X.Count is 0) return [.. R];
+
+        var largestClique = new List<string>();
+
+        foreach (var v in P.ToList())
+        {
+            var neighbors = _graph[v];
+
+            var newClique = BronKerbosch(
+                new HashSet<string>(R) { v },
+                new HashSet<string>(P.Intersect(neighbors)),
+                new HashSet<string>(X.Intersect(neighbors))
+            );
+
+            if (newClique.Count > largestClique.Count)
+            {
+                largestClique = newClique;
+            }
+
+            P.Remove(v);
+            X.Add(v);
+        }
+
+        return largestClique;
+    }
 
     private static HashSet<(string, string, string)> FindTriangles(Dictionary<string, HashSet<string>> graph)
-    {
-        return graph.Keys
+        => graph.Keys
             .SelectMany(a => graph[a]
                 .Where(b => string.Compare(b, a) > 0)
                 .SelectMany(b => graph[b]
@@ -45,7 +76,6 @@ public class Day23 : BaseDay
             )
             .Select(triangle => (triangle[0], triangle[1], triangle[2]))
             .ToHashSet();
-    }
 
     private static void AddEdge(Dictionary<string, HashSet<string>> graph, string left, string right)
     {
