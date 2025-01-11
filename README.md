@@ -27,6 +27,3 @@
 | 23   | <span style="color:yellow">**</span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:white">**</span>  | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> |
 | 24   | <span style="color:yellow">**</span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:white">**</span>  | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> |
 | 25   | <span style="color:yellow">**</span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:white">* </span>  | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> | <span style="color:yellow">  </span> |
-
-<span style="color:yellow">**</span> = with solution on github <br>
-\** = without solution on github
